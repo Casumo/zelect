@@ -13,8 +13,21 @@
     noResults:      function(term?): function to create no results text
     regexpMatcher:  function(term): override regexp creation when filtering options
 */
+
+/*
+* 2013-08-01
+* Fixed submit-on-enter issue in the keydown event //frex
+* Disable mouseover to change the selected option //frex
+*
+* 2013-08-20
+* Set the selected item after click. Before it was reset to the first item in the list //frex
+*
+* 2013-12-18
+* Added css classes
+*/
+
 (function($) {
-  var keys = { tab:9, enter:13, esc:27, left:37, up:38, right:39, down:40 }
+  var keys = { tab:9, enter:13, esc:27, left:37, up:38, right:39, down:40, space:32  }  //adam, added space key
   var defaults = {
     throttle: 300,
     renderItem: defaultRenderItem,
@@ -28,13 +41,13 @@
     return this.each(function() {
       if ($(this).parent().length === 0) throw new Error('<select> element must have a parent')
       var $select = $(this).hide().data('zelectItem', selectItem).data('refreshItem', refreshItem).data('reset', reset)
-
       var $zelect = $('<div>').addClass('zelect')
       var $selected = $('<div>').addClass('zelected')
-      var $dropdown = $('<div>').addClass('dropdown').hide()
+      var $dropdown = $('<div>').addClass('zelect-dropdown').hide() //frex, added css class
       var $noResults = $('<div>').addClass('no-results')
       var $search = $('<input>').addClass('zearch')
-      var $list = $('<ol>')
+      var $list = $('<ol>').addClass("list") //frex, added css class
+
       var listNavigator = navigable($list)
 
       var itemHandler = opts.loader
@@ -60,13 +73,19 @@
       })
       $search.keydown(function(e) {
         switch (e.which) {
-          case keys.tab: e.preventDefault(); hide(); return;
+          case keys.tab: $zelect.removeClass('hover'); hide(); return;
           case keys.up: e.preventDefault(); listNavigator.prev(); return;
           case keys.down: e.preventDefault(); listNavigator.next(); return;
+          case keys.enter: e.preventDefault(); return; //frex, added event
         }
       })
 
-      $list.on('click', 'li', function() { selectItem($(this).data('zelect-item')) })
+      $list.on('click', 'li', function() {
+        var $item = $(this);
+        selectItem($item.data('zelect-item'))
+        hide(false) // adam, hiding select but not refocusing the hidden input
+        listNavigator.set($item); //frex, added call
+      })
       $zelect.mouseenter(function() { $zelect.addClass('hover') })
       $zelect.mouseleave(function() { $zelect.removeClass('hover') })
       $zelect.attr("tabindex", $select.attr("tabindex"))
@@ -78,6 +97,19 @@
       $zelect.insertAfter($select)
         .append($selected)
         .append($dropdown.append($('<div>').addClass('zearch-container').append($search).append($noResults)).append($list))
+
+      var focusZelect = function() {
+        toggle();
+      };
+
+      var $tabtrigger = $('<input>').css({ height: 1, width: 1, zIndex: -1, position: "absolute", padding: 0, background:"transparent"}).focus(focusZelect).on('keyup', function(e) {
+            if ( e.which === keys.space || e.which === keys.down) {
+                e.preventDefault();
+                toggle();
+                return false;
+            }
+        }); //adam, added element for tabbing index
+      $tabtrigger.insertAfter($zelect); //adam, inserting tabbing helpers
 
       itemHandler.load($search.val(), function() {
         initialSelection(true)
@@ -123,9 +155,18 @@
         }
       }
 
-      function hide() {
+      function hide(refocus) {//adam, adding refocus variable
+        $tabtrigger.unbind('focus'); //adam, we want to unbind the focus event listener as we dont want to reopen the zelect when the 'hidden' input for tabbing is refocussed
         $dropdown.hide()
         $zelect.removeClass('open')
+
+        if (refocus != false)
+            $tabtrigger.trigger('focus'); // adam, when something is selected we need to refocus the 'hidden' input field to allow tabbing to continue
+
+        setTimeout(function() {
+            $tabtrigger.unbind('focus');
+            $tabtrigger.focus(focusZelect);
+        }, 100); //adam, we need to safely rebind the event listener again as we want to listen to the subsequent calls to this
       }
 
       function renderContent($obj, content) {
@@ -135,7 +176,7 @@
       }
 
       function appendItem(item, term) {
-        $list.append(renderContent($('<li>').data('zelect-item', item), opts.renderItem(item, term)))
+        $list.append(renderContent($('<li>').addClass("item").data('zelect-item', item), opts.renderItem(item, term))) //frex, added css class
       }
 
       function checkResults(term) {
@@ -219,7 +260,7 @@
         return true
       } else {
         var lastChildTop = $lastChild.offset().top - $list.offset().top
-        var lastChildVisible = lastChildTop < $list.outerHeight()
+        var lastChildVisible = lastChildTop < $list.outerHeight(false)
         if (lastChildVisible) load()
         return lastChildVisible
       }
@@ -279,7 +320,7 @@
 
   function navigable($list) {
     var skipMouseEvent = false
-    $list.on('mouseenter', 'li', onMouseEnter)
+    //$list.on('mouseenter', 'li', onMouseEnter) //frex, uncommented
 
     function next() {
       var $next = current().next('li')
@@ -322,7 +363,7 @@
     }
     function ensureBottomVisible($item) {
       var scrollBottom = $list.height()
-      var itemBottom = itemTop($item) + $item.outerHeight()
+      var itemBottom = itemTop($item) + $item.outerHeight(false)
       if (scrollBottom < itemBottom) {
         moveScroll($list.scrollTop() + itemBottom - scrollBottom)
       }
@@ -331,6 +372,6 @@
       $list.scrollTop(offset)
       skipMouseEvent = true
     }
-    return { next:next, prev:prev, current:current, ensure:ensure }
+    return { next:next, prev:prev, current:current, ensure:ensure, set:set } //frex, exposed 'set'
   }
 })(jQuery)
