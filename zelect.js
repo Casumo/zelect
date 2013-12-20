@@ -117,7 +117,7 @@
       })
 
       function selectItem(item, triggerChange) {
-        renderContent($selected, opts.renderItem(item)).removeClass('placeholder')
+        renderContent($selected, opts.renderItem(item, true)).removeClass('placeholder')
         hide()
         if (item && item.value !== undefined) $select.val(item.value)
         $select.data('zelected', item)
