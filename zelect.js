@@ -40,10 +40,10 @@
       var $select = $(this).hide().data('zelectItem', selectItem).data('refreshItem', refreshItem).data('reset', reset)
       var $zelect = $('<div>').addClass('zelect')
       var $selected = $('<div>').addClass('zelected')
-      var $dropdown = $('<div>').addClass('dropdown').hide()
+      var $dropdown = $('<div>').addClass('zelect-dropdown').hide() //frex, added css class
       var $noResults = $('<div>').addClass('no-results')
       var $search = $('<input>').addClass('zearch')
-      var $list = $('<ol>')
+      var $list = $('<ol>').addClass("list") //frex, added css class
 
       var listNavigator = navigable($list)
 
@@ -173,7 +173,7 @@
       }
 
       function appendItem(item, term) {
-        $list.append(renderContent($('<li>').data('zelect-item', item), opts.renderItem(item, term)))
+        $list.append(renderContent($('<li>').addClass('item').data('zelect-item', item), opts.renderItem(item, term))) //frex, added css class
       }
 
       function checkResults(term) {
