@@ -109,6 +109,9 @@
                 return false;
             }
         }); //adam, added element for tabbing index
+      if (opts.skipTabIndex) {
+        $tabtrigger.attr('tabindex', -1);
+      }
       $tabtrigger.insertAfter($zelect); //adam, inserting tabbing helpers
 
       itemHandler.load($search.val(), function() {
