@@ -21,6 +21,9 @@
 *
 * 2013-08-20
 * Set the selected item after click. Before it was reset to the first item in the list //frex
+*
+* 2013-12-18
+* Added css classes
 */
 
 (function($) {
@@ -114,7 +117,7 @@
       })
 
       function selectItem(item, triggerChange) {
-        renderContent($selected, opts.renderItem(item)).removeClass('placeholder')
+        renderContent($selected, opts.renderItem(item, true)).removeClass('placeholder')
         hide()
         if (item && item.value !== undefined) $select.val(item.value)
         $select.data('zelected', item)
@@ -130,7 +133,7 @@
         var term = searchTerm()
         $list.find('li').each(function() {
           if (eq($(this).data('zelect-item'), item)) {
-            renderContent($(this), opts.renderItem(item, term)).data('zelect-item', item)
+            renderContent($(this), opts.renderItem(item, false, term)).data('zelect-item', item)
           }
         })
       }
@@ -173,7 +176,7 @@
       }
 
       function appendItem(item, term) {
-        $list.append(renderContent($('<li>').addClass('item').data('zelect-item', item), opts.renderItem(item, term))) //frex, added css class
+        $list.append(renderContent($('<li>').addClass("item").data('zelect-item', item), opts.renderItem(item, false, term))) //frex, added css class
       }
 
       function checkResults(term) {
