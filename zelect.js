@@ -102,7 +102,7 @@
         toggle();
       };
 
-      var $tabtrigger = $('<input>').css({ height: 1, width: 1, zIndex: -1, position: "absolute", padding: 1, background:"transparent"}).focus(focusZelect).on('keyup', function(e) {
+      var $tabtrigger = $('<input>').css({ height: 1, width: 1, zIndex: -1, position: "absolute", padding: 1, background:"transparent", border: 0}).focus(focusZelect).on('keyup', function(e) {
             if ( e.which === keys.space || e.which === keys.down) {
                 e.preventDefault();
                 toggle();
